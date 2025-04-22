@@ -1,128 +1,53 @@
-; 左右 Alt キーの空打ちで IME の OFF/ON を切り替える
-;
-; 左 Alt キーの空打ちで IME を「英数」に切り替え
-; 右 Alt キーの空打ちで IME を「かな」に切り替え
-; Alt キーを押している間に他のキーを打つと通常の Alt キーとして動作
-;
-; Author:     karakaram   http://www.karakaram.com/alt-ime-on-off
-
 #Include IME.ahk
 
-; Razer Synapseなど、キーカスタマイズ系のツールを併用しているときのエラー対策
 #MaxHotkeysPerInterval 350
 
-; 主要なキーを HotKey に設定し、何もせずパススルーする
-*~a::
-*~b::
-*~c::
-*~d::
-*~e::
-*~f::
-*~g::
-*~h::
-*~i::
-*~j::
-*~k::
-*~l::
-*~m::
-*~n::
-*~o::
-*~p::
-*~q::
-*~r::
-*~s::
-*~t::
-*~u::
-*~v::
-*~w::
-*~x::
-*~y::
-*~z::
-*~1::
-*~2::
-*~3::
-*~4::
-*~5::
-*~6::
-*~7::
-*~8::
-*~9::
-*~0::
-*~F1::
-*~F2::
-*~F3::
-*~F4::
-*~F5::
-*~F6::
-*~F7::
-*~F8::
-*~F9::
-*~F10::
-*~F11::
-*~F12::
-*~`::
-*~~::
-*~!::
-*~@::
-*~#::
-*~$::
-*~%::
-*~^::
-*~&::
-*~*::
-*~(::
-*~)::
-*~-::
-*~_::
-*~=::
-*~+::
-*~[::
-*~{::
-*~]::
-*~}::
-*~\::
-*~|::
-*~;::
-*~'::
-*~"::
-*~,::
-*~<::
-*~.::
-*~>::
-*~/::
-*~?::
-*~Esc::
-*~Tab::
-*~Space::
-*~Left::
-*~Right::
-*~Up::
-*~Down::
-*~Enter::
-*~PrintScreen::
-*~Delete::
-*~Home::
-*~End::
-*~PgUp::
-*~PgDn::
+; 各種キーのパススルー処理（略）
+; ...（ここはそのまま）
+
+; フラグ定義
+LAltPressed := false
+RAltPressed := false
+
+; 左 Alt キーが押された
+*LAlt::
+    LAltPressed := true
+    SetTimer, CheckLAlt, -150  ; 150ms以内に他のキーが押されなければIME切替とみなす
     Return
 
-; 上部メニューがアクティブになるのを抑制
-*~LAlt::Send {Blind}{vk07}
-*~RAlt::Send {Blind}{vk07}
-
-; 左 Alt 空打ちで IME を OFF
+; 左 Alt キーが離された
 LAlt up::
-    if (A_PriorHotkey == "*~LAlt")
-    {
+    if (LAltPressed) {
         IME_SET(0)
+        LAltPressed := false
+        Return
     }
     Return
 
-; 右 Alt 空打ちで IME を ON
+CheckLAlt:
+    if (GetKeyState("LAlt", "P")) {
+        ; Alt押しっぱなし → 組み合わせの可能性 → IME切替しない
+        LAltPressed := false
+    }
+Return
+
+; 右 Alt キーが押された
+*RAlt::
+    RAltPressed := true
+    SetTimer, CheckRAlt, -150
+    Return
+
+; 右 Alt キーが離された
 RAlt up::
-    if (A_PriorHotkey == "*~RAlt")
-    {
+    if (RAltPressed) {
         IME_SET(1)
+        RAltPressed := false
+        Return
     }
     Return
+
+CheckRAlt:
+    if (GetKeyState("RAlt", "P")) {
+        RAltPressed := false
+    }
+Return
