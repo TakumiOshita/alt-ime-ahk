@@ -32,3 +32,7 @@ IntelliJ IDEA など JetBrains 製の IDE をお使いの方は「上部メニ�
 
 [Altの空打ちで日本語入力(IME)を切り替えるツールを作った](http://www.karakaram.com/alt-ime-on-off/)
 
+
+
+## 追記
+AutoHostkeyv2 にコードを修正しました。
