@@ -1,65 +1,25 @@
-﻿#Requires AutoHotkey v2.0
-#SingleInstance Force
-#Include %A_ScriptDir%\IME.ahk
+﻿; IME.ahk - AHK v2対応 IME制御用ユーティリティ
 
-global Hotkeys := Map()
-
-OnExit(HandleExit)
-SetTimer(CheckIMEState, 500)
-
-; IME 状態表示用のツールチップ
-CheckIMEState() {
-    hwnd := WinActive("A")
-    if hwnd {
-        imeStatus := GetImeStatus(hwnd)
-        ToolTip("IME: " . (imeStatus ? "ON" : "OFF"))
-    }
-}
-
-; ホットキーの登録
-RegisterHotkeys() {
-    Hotkeys["^!i"] := ToggleIME
-    for hotkey, fn in Hotkeys
-        Hotkey(hotkey, fn)
-}
-
-; IMEのON/OFFトグル
-ToggleIME(*) {
-    hwnd := WinActive("A")
-    if hwnd {
-        ToggleIme(hwnd)
-    }
-}
-
-; IMEをトグルする関数
-ToggleIme(hwnd) {
-    if GetImeStatus(hwnd)
-        SetImeStatus(hwnd, false)
-    else
-        SetImeStatus(hwnd, true)
-}
-
-; IMEステータス取得
 GetImeStatus(hwnd) {
-    himc := DllCall("imm32\ImmGetContext", "ptr", hwnd, "ptr")
-    result := DllCall("imm32\ImmGetOpenStatus", "ptr", himc, "int")
-    DllCall("imm32\ImmReleaseContext", "ptr", hwnd, "ptr", himc)
-    return result
+    hIMC := DllCall("imm32\ImmGetContext", "Ptr", hwnd, "Ptr")
+    if !hIMC
+        return false
+
+    status := DllCall("imm32\ImmGetOpenStatus", "Ptr", hIMC)
+    DllCall("imm32\ImmReleaseContext", "Ptr", hwnd, "Ptr", hIMC)
+    return status != 0
 }
 
-; IMEステータス設定
-SetImeStatus(hwnd, status) {
-    himc := DllCall("imm32\ImmGetContext", "ptr", hwnd, "ptr")
-    if status
-        DllCall("imm32\ImmSetOpenStatus", "ptr", himc, "int", 1)
-    else
-        DllCall("imm32\ImmSetOpenStatus", "ptr", himc, "int", 0)
-    DllCall("imm32\ImmReleaseContext", "ptr", hwnd, "ptr", himc)
-}
+SetImeStatus(hwnd, turnOn := true) {
+    hIMC := DllCall("imm32\ImmGetContext", "Ptr", hwnd, "Ptr")
+    if !hIMC
+        return
 
-; 終了時処理
-HandleExit(ExitReason, ExitCode) {
-    ToolTip() ; ToolTipを非表示にする
-}
+    if turnOn {
+        DllCall("imm32\ImmSetOpenStatus", "Ptr", hIMC, "Int", 1)
+    } else {
+        DllCall("imm32\ImmSetOpenStatus", "Ptr", hIMC, "Int", 0)
+    }
 
-RegisterHotkeys()
+    DllCall("imm32\ImmReleaseContext", "Ptr", hwnd, "Ptr", hIMC)
+}
